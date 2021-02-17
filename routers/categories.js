@@ -17,4 +17,18 @@ router.get("/", (req, res) => {
     );
 });
 
+router.post("/", async (req, res) => {
+  let category = new Category({
+    name: req.body.name,
+    color: req.body.color,
+    icon: req.body.icon,
+  });
+
+  category = await category.save();
+  if (!category) {
+    return res.status(404).send("The category cannot be created!!");
+  }
+  res.send(category);
+});
+
 module.exports = router;
