@@ -4,7 +4,7 @@ const router = express.Router();
 const { Product } = require("../models/product");
 
 router.get("/", (req, res) => {
-  Product.find()
+  Product.find().select("name image countInStock")
     .then((productList) => {
       res.status(200).json({
         status: 200,
@@ -17,7 +17,20 @@ router.get("/", (req, res) => {
       })
     );
 });
-
+router.get("/:id", async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product)
+    return res.status(404).json({
+      status: 404,
+      success: false,
+      message: "Product of given ID is Not Found!",
+    });
+  res.status(200).json({
+    status: 200,
+    success: true,
+    product,
+  });
+});
 router.post("/", async (req, res) => {
   const category = await Category.findById(req.body.category);
   if (!category)
