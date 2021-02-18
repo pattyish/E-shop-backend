@@ -121,6 +121,7 @@ router.put("/:id", async (req, res) => {
   });
 });
 
+// Delete Product
 router.delete("/:id", (req, res) => {
   Product.findByIdAndRemove(req.params.id)
     .then((product) => {
@@ -143,4 +144,37 @@ router.delete("/:id", (req, res) => {
       });
     });
 });
+
+// Count Product
+router.get("/get/count", async (req, res) => {
+  const productCount = await Product.countDocuments((count) => count);
+  if (!productCount)
+    return res.status(404).json({
+      status: 404,
+      success: false,
+      message: "There is no Product in Stock Yet!",
+    });
+  res.status(200).json({
+    status: 200,
+    success: true,
+    productCount: productCount,
+  });
+});
+// Get Featured Product
+router.get("/get/featured/:count", async (req, res) => {
+  const count = req.params.count ? req.params.count : 0;
+  const productFeatured = await Product.find({ isFeatured: true }).limit(+count);
+  if (!productFeatured)
+    return res.status(404).json({
+      status: 404,
+      success: false,
+      message: "There is no Product in Stock Yet!",
+    });
+  res.status(200).json({
+    status: 200,
+    success: true,
+    productFeatured: productFeatured,
+  });
+});
+
 module.exports = router;
