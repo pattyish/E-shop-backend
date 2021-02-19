@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const { User } = require("../models/user");
+require("dotenv/config");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Getting all Users
 router.get("/", async (req, res) => {
@@ -65,5 +67,37 @@ router.post("/", async (req, res) => {
     user: user,
   });
 });
-
+// User Login
+router.post("/login", async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(400).json({
+      status: 400,
+      success: false,
+      message: "The User Not Found!",
+    });
+  }
+  if (user && bcrypt.compareSync(req.body.password, user.passwordHash)) {
+    const token = jwt.sign(
+      {
+        userId: user.id,
+      },
+      process.env.SECRET,
+      {expiresIn: "10w"}
+    );
+    return res.status(200).json({
+      status: 200,
+      success: false,
+      message: "Login Successful!",
+      user: user.email,
+      token: token,
+    });
+  } else {
+   res.status(400).json({
+      status: 400,
+      success: false,
+      message: "Password Or Email Is Not Correct!!",
+    });
+  }
+});
 module.exports = router;
