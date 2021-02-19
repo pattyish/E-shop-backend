@@ -84,4 +84,47 @@ router.post("/", async (req, res) => {
     orders: orders,
   });
 });
+
+// Update Order
+router.put("/:id", async (req, res) => {
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    {
+      status: req.body.status
+    },
+    { new: true }
+  );
+  if (!order) {
+    return res.status(404).json({
+      status: 404,
+      success: false,
+      message: "The Category Not Modified!!",
+    });
+  }
+  res.status(200).send(order);
+});
+// Delete Order
+router.delete("/:id", async (req, res) => {
+  Order.findByIdAndRemove(req.params.id)
+    .then((order) => {
+      if (order) {
+        return res.status(200).json({
+          success: true,
+          message: "The Order Deleted Successful!!!",
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "order does not Found!!",
+        });
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json({
+        success: false,
+        error: error,
+      });
+    });
+});
+
 module.exports = router;
