@@ -38,7 +38,7 @@ router.get("/:id", async (req, res) => {
   });
 });
 // Creating New User
-router.post("/", async (req, res) => {
+router.post("/register", async (req, res) => {
   let user = new User({
     name: req.body.name,
     email: req.body.email,
@@ -81,6 +81,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       {
         userId: user.id,
+        isAdmin: user.isAdmin
       },
       process.env.SECRET,
       {expiresIn: "10w"}

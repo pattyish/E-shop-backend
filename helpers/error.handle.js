@@ -2,7 +2,6 @@ function errorHandler(err, req, res, next) {
   if (err.name === "UnauthorizedError") {
     return res.status(401).json({
       status: 401,
-      message: "Use Authentication Fail!",
       success: false,
       error: err,
     });
@@ -16,7 +15,7 @@ function errorHandler(err, req, res, next) {
   }
 
   return res.status(500).json({
-    status: 401,
+    status: 500,
     success: false,
     error: err,
   });
