@@ -6,6 +6,8 @@ const { OrderItem } = require("../models/order-item");
 // Get Orders
 router.get("/", (req, res) => {
   Order.find()
+    .populate("user", "name")
+    .sort({ "dateOrdered": -1 })
     .then((orderList) => {
       res.status(200).json({
         status: 200,
@@ -17,6 +19,28 @@ router.get("/", (req, res) => {
         error: err,
       })
     );
+});
+// Get orders By Id
+router.get("/:id", async (req, res) => {
+  const order = await Order.findById(req.params.id)
+    .populate("user", "name")
+    .populate({
+      path: "orderItems",
+      populate: {
+        path: "product",
+        populate: "category"
+      }
+    });
+  if (!order)
+    return res.status(404).json({
+      status: 404,
+      success: false,
+      message: "Order of given ID is Not Found!",
+    });
+  res.status(200).json({
+    status: 200,
+    order: order,
+  });
 });
 
 // Post order
