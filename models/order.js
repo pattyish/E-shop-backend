@@ -12,7 +12,7 @@ const orderSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  shippingAddress1: {
+  shippingAddress2: {
     type: String,
   },
   city: {
@@ -33,8 +33,8 @@ const orderSchema = mongoose.Schema({
   },
   status: {
     type: String,
-    required: true,
     default: "Pending",
+    required: true,
   },
   totalPrice: {
     type: Number,

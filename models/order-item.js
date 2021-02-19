@@ -19,4 +19,4 @@ orderItemSchema.virtual("id").get(function () {
     virtuals: true,
   });
 
-exports.OrderItem = mongoose.model("Order", orderItemSchema);
+exports.OrderItem = mongoose.model("OrderItem", orderItemSchema);
