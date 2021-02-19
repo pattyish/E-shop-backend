@@ -81,24 +81,62 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       {
         userId: user.id,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
       },
       process.env.SECRET,
-      {expiresIn: "10w"}
+      { expiresIn: "10w" }
     );
     return res.status(200).json({
       status: 200,
-      success: false,
+      success: true,
       message: "Login Successful!",
       user: user.email,
       token: token,
     });
   } else {
-   res.status(400).json({
+    res.status(400).json({
       status: 400,
       success: false,
       message: "Password Or Email Is Not Correct!!",
     });
   }
+});
+// Count Users
+router.get("/get/count", async (req, res) => {
+  const userCount = await User.countDocuments((count) => count);
+  if (!userCount)
+    return res.status(404).json({
+      status: 404,
+      success: false,
+      message: "There Is No User Resgistered Yet!!!!",
+    });
+  res.status(200).json({
+    status: 200,
+    success: true,
+    userCount: userCount,
+  });
+});
+// Delete User
+router.delete("/:id", (req, res) => {
+  User.findByIdAndRemove(req.params.id)
+    .then((user) => {
+      if (user) {
+        return res.status(200).json({
+          success: true,
+          message: "The user is Deleted!",
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "user does not Found!",
+        });
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json({
+        success: false,
+        error: error,
+      });
+    });
 });
 module.exports = router;
