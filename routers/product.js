@@ -74,6 +74,13 @@ router.post("/", uploadOptions.single("image"), async (req, res) => {
       success: false,
       message: "Invalid Category",
     });
+  const file = req.file;
+  if (!file)
+    return res.status(400).json({
+      status: 400,
+      success: false,
+      message: "Please Choose Image To Upload Before Submit!!!",
+    });
   const fileName = req.file.filename;
   const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
   let product = new Product({
