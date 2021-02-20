@@ -175,4 +175,28 @@ router.get("/get/count", async (req, res) => {
     orderCount: ordersCount,
   });
 });
+
+// Get Orders By users
+router.get("/get/userOrder/:userId", (req, res) => {
+  Order.find({ user: req.params.userId })
+    .populate({
+      path: "orderItems",
+      populate: {
+        path: "product",
+        populate: "category",
+      },
+    })
+    .sort({ dateOrdered: -1 })
+    .then((userOrderList) => {
+      res.status(200).json({
+        status: 200,
+        userOrderList: userOrderList,
+      });
+    })
+    .catch((err) =>
+      res.status(500).json({
+        error: err,
+      })
+    );
+});
 module.exports = router;
