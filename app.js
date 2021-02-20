@@ -24,6 +24,7 @@ app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({ extended: true}))
 app.use(morgan("tiny"));
 app.use(authJwt());
+app.use("/public/uploads", express.static(__dirname + "/public/uploads"));
 app.use(errorHandler);
 
 app.use(`${api}/products`, productRoutes);
