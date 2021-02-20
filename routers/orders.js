@@ -7,7 +7,7 @@ const { OrderItem } = require("../models/order-item");
 router.get("/", (req, res) => {
   Order.find()
     .populate("user", "name")
-    .sort({ "dateOrdered": -1 })
+    .sort({ dateOrdered: -1 })
     .then((orderList) => {
       res.status(200).json({
         status: 200,
@@ -28,8 +28,8 @@ router.get("/:id", async (req, res) => {
       path: "orderItems",
       populate: {
         path: "product",
-        populate: "category"
-      }
+        populate: "category",
+      },
     });
   if (!order)
     return res.status(404).json({
@@ -56,6 +56,18 @@ router.post("/", async (req, res) => {
     })
   );
   const orderItemsIdsResolve = await orderItemsIds;
+
+  const totalPrices = await Promise.all(
+    orderItemsIdsResolve.map(async (orderItemId) => {
+      const orderItem = await OrderItem.findById(orderItemId).populate(
+        "product",
+        "price"
+      );
+      const totalPrice = orderItem.product.price * orderItem.quantity;
+      return totalPrice;
+    })
+  );
+  const totalPrice = totalPrices.reduce((a, b) => a + b, 0);
   let orders = new Order({
     orderItems: orderItemsIdsResolve,
     shippingAddress1: req.body.shippingAddress1,
@@ -65,7 +77,7 @@ router.post("/", async (req, res) => {
     country: req.body.country,
     phone: req.body.phone,
     status: req.body.status,
-    totalPrice: req.body.totalPrice,
+    totalPrice: totalPrice,
     user: req.body.user,
   });
 
@@ -90,7 +102,7 @@ router.put("/:id", async (req, res) => {
   const order = await Order.findByIdAndUpdate(
     req.params.id,
     {
-      status: req.body.status
+      status: req.body.status,
     },
     { new: true }
   );
@@ -105,9 +117,12 @@ router.put("/:id", async (req, res) => {
 });
 // Delete Order
 router.delete("/:id", async (req, res) => {
-  Order.findByIdAndRemove(req.params.id)
-    .then((order) => {
+  const order = Order.findByIdAndRemove(req.params.id)
+    .then(async (order) => {
       if (order) {
+        await order.orderItems.map(async (orderItem) => {
+          await OrderItem.findByIdAndRemove(orderItem);
+        });
         return res.status(200).json({
           success: true,
           message: "The Order Deleted Successful!!!",
@@ -126,5 +141,38 @@ router.delete("/:id", async (req, res) => {
       });
     });
 });
+// Get Total Sales
+router.get("/get/totalSales", async (req, res) => {
+  const totalSales = await Order.aggregate([
+    { $group: { _id: null, totalSales: { $sum: "$totalPrice" } } }
+  ])
+  if (!totalSales) {
+    return res.status(400).json({
+      status: 400,
+      success: false,
+      message: "No Orders Have Been Made Yet!!"
+    })
+  }
+  return res.status(200).json({
+    status: 200,
+    success: true,
+    totalSales: totalSales.pop().totalSales
+  })
+})
 
+// Count Orders
+router.get("/get/count", async (req, res) => {
+  const ordersCount = await Order.countDocuments((count) => count);
+  if (!ordersCount)
+    return res.status(404).json({
+      status: 404,
+      success: false,
+      message: "There Is No Ordes in Stock Yet!",
+    });
+  res.status(200).json({
+    status: 200,
+    success: true,
+    orderCount: ordersCount,
+  });
+});
 module.exports = router;
