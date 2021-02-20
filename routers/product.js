@@ -8,8 +8,8 @@ const multer = require("multer");
 const FILE_TYPE_MAP = {
   "image/png": "png",
   "image/jpg": "jpg",
-  "image/jpeg": "jpeg"
-}
+  "image/jpeg": "jpeg",
+};
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const isValid = FILE_TYPE_MAP[file.mimetype];
@@ -17,16 +17,16 @@ const storage = multer.diskStorage({
     if (isValid) {
       uploadError = null;
     }
-    cb(uploadError, 'public/uploads')
+    cb(uploadError, "public/uploads");
   },
   filename: function (req, file, cb) {
     const fileName = file.originalname.split(" ").join("-");
     const extension = FILE_TYPE_MAP[file.mimetype];
-    cb(null, `${fileName}-${Date.now()}.${extension}`)
-  }
-})
+    cb(null, `${fileName}-${Date.now()}.${extension}`);
+  },
+});
 
-const uploadOptions = multer({ storage: storage })
+const uploadOptions = multer({ storage: storage });
 
 // Get All Products From Database
 router.get("/", (req, res) => {
@@ -215,4 +215,46 @@ router.get("/get/featured/:count", async (req, res) => {
   });
 });
 
+// Update Product By Uploading Images For Gallery
+router.put(
+  "/gallery-images/:id",
+  uploadOptions.array("images", 10),
+  async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({
+        status: 404,
+        success: false,
+        message: "Invalid Product Id!",
+      });
+    }
+    const files = req.files;
+    const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+    let imagesPaths = [];
+    if (files) {
+      files.map((file) => {
+        imagesPaths.push(`${basePath}${file.filename}`);
+      });
+    }
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        images: imagesPaths,
+      },
+      { new: true }
+    );
+    if (!product) {
+      return res.status(500).json({
+        status: 500,
+        success: false,
+        message: "The Product Not Modified!!",
+      });
+    }
+    res.status(200).json({
+      status: 200,
+      success: true,
+      message: "Product Updated Successful",
+      product: product,
+    });
+  }
+);
 module.exports = router;
